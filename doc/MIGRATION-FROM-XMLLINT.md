@@ -28,10 +28,12 @@ see [EXIT-CODES.md](EXIT-CODES.md).
 `oxml` never does, and has no option to. A document that legitimately
 depends on an external entity will lose that content silently.
 
-**Namespace prefixes in expressions.** `xmllint` requires
-`--xpath` expressions to use prefixes bound in the document. `oxml`
-ignores prefixes in a name test entirely — `//x:item` selects every
-`item`. Filter on `namespace-uri()` instead.
+**Namespace prefixes in expressions.** `xmllint` resolves a prefix
+against the document's declarations. `oxml` ignores prefixes entirely
+in the version this crate links, and from oxml 0.0.4 resolves them
+against bindings supplied with the query — which this command cannot
+yet supply. Filter on `namespace-uri()`, which works in every version.
+See [NAMESPACES.md](NAMESPACES.md).
 
 ## What you gain
 

@@ -350,20 +350,27 @@ Not directly. Pipe it: `gunzip -c f.xml.gz | oxml query …`.
 
 ### How do I query a document with namespaces?
 
-Prefixes in an expression are **not** resolved against the document's
-bindings — `//x:item` matches every `item` regardless of namespace, and
-so does `//item`. This is a known defect inherited from the library.
+**This changes at 0.0.4, and the command line does not have the fix
+yet.**
 
-Filter on the namespace explicitly instead:
+In the version this crate currently links (oxml 0.0.3) a prefix in an
+expression is not resolved at all: `//x:item` and `//item` both select
+every `item` regardless of namespace. Filter on the URI instead:
 
 ```bash
 oxml query -t "//*[namespace-uri()='urn:example' and local-name()='item']" f.xml
 ```
 
-For **attributes**, that workaround needs `namespace-uri()` to describe
-attribute nodes, which was broken until oxml 0.0.4 — it returned the
-empty string for every attribute, so the query matched nothing and
-looked like an empty document rather than a bug.
+From oxml 0.0.4 a prefixed name test resolves against bindings supplied
+to the query, and **an unbound prefix is a compile error** rather than
+a silent match. An unprefixed name test matches only nodes in no
+namespace, which is what XPath 1.0 specifies.
+
+That needs a `--ns prefix=uri` flag on this command, which is not
+implemented — see
+[doc/NAMESPACES.md](doc/NAMESPACES.md). Until it is, the
+`namespace-uri()` form above is the way to select on a namespace, and
+it keeps working in both versions.
 
 ### Is the output stable enough to parse?
 

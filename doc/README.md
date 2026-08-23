@@ -8,6 +8,7 @@ reference for what the commands do.
 | File | Subject |
 |---|---|
 | [USER-GUIDE.md](USER-GUIDE.md) | Recipes, and the shell idioms that go with them |
+| [NAMESPACES.md](NAMESPACES.md) | The `--ns` flag oxml 0.0.4 makes necessary, and does not yet exist |
 | [EXIT-CODES.md](EXIT-CODES.md) | Why "no match" and "you made a mistake" are different codes |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | How the binary is put together |
 | [SECURITY-MODEL.md](SECURITY-MODEL.md) | What it will not do to a file you point it at |
