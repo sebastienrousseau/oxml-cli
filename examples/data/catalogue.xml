@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<catalogue xmlns:m="urn:example:meta">
+  <book lang="en" m:isbn="978-0441013593"><title>Dune</title><price>9.99</price></book>
+  <book lang="fr" m:isbn="978-2070413119"><title>Germinal</title><price>7.50</price></book>
+  <!-- prices exclude shipping -->
+</catalogue>
