@@ -167,7 +167,14 @@ fn cmd_query(
 /// A one-line summary of a node, for when `--text` is not enough.
 fn describe(doc: &oxml::Document, node: oxml::NodeId) -> String {
     match doc.kind(node) {
-        Some(oxml::NodeKind::Element { name, .. }) => {
+        // Resolved through `element_name` rather than destructured from
+        // the variant: the element's name is interned, so the variant
+        // holds a handle rather than the name itself. This accessor is
+        // stable across that change.
+        Some(oxml::NodeKind::Element { .. }) => {
+            let Some(name) = doc.element_name(node) else {
+                return String::new();
+            };
             let attrs: Vec<String> = doc
                 .attributes(node)
                 .iter()
