@@ -29,12 +29,16 @@ fn run(args: &[&str], stdin: &str) -> Output {
         .stderr(Stdio::piped())
         .spawn()
         .expect("binary runs");
-    child
+    // A broken pipe here is not a failure. `oxml frobnicate` reports an
+    // unknown command and exits *without reading stdin*, so the write
+    // races the child's exit -- Linux reports EPIPE, macOS usually
+    // absorbs it into the buffer, and the test passed on one platform
+    // and not the other.
+    let _ = child
         .stdin
         .as_mut()
         .expect("stdin")
-        .write_all(stdin.as_bytes())
-        .expect("write");
+        .write_all(stdin.as_bytes());
     let out = child.wait_with_output().expect("wait");
     Output {
         stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
