@@ -173,6 +173,7 @@ where an editor would.
 |---|---|
 | `-t`, `--text` | Print matched nodes' text rather than a summary |
 | `-c`, `--count` | Print only the number of matches |
+| `-n`, `--ns P=URI` | Bind a namespace prefix for `query`; repeatable |
 | `-h`, `--help` | Usage |
 | `-V`, `--version` | Version |
 
@@ -350,27 +351,35 @@ Not directly. Pipe it: `gunzip -c f.xml.gz | oxml query …`.
 
 ### How do I query a document with namespaces?
 
-**This changes at 0.0.4, and the command line does not have the fix
-yet.**
+Bind the prefix on the command line:
 
-In the version this crate currently links (oxml 0.0.3) a prefix in an
-expression is not resolved at all: `//x:item` and `//item` both select
-every `item` regardless of namespace. Filter on the URI instead:
+```bash
+oxml query -n m=urn:example:meta -t '//m:item' catalogue.xml
+```
+
+The binding lives with the *query*, not the document, so the same
+command works against a document that spells the prefix differently —
+only the URI has to match. `-n` is repeatable, and later bindings for
+the same prefix win.
+
+**An unbound prefix is an error**, not a silent match on the local
+part:
+
+```
+$ oxml query -t '//m:item' catalogue.xml
+oxml: bad XPath: unbound namespace prefix `m`; bind it with --ns m=URI
+```
+
+An **unprefixed** name test matches only nodes in no namespace, which
+is what XPath 1.0 specifies. If your document declares a default
+namespace, `//item` matches nothing — bind a prefix to that URI.
+
+`namespace-uri()` still works and needs no binding, which is useful
+when you know the URI and not the prefix:
 
 ```bash
 oxml query -t "//*[namespace-uri()='urn:example' and local-name()='item']" f.xml
 ```
-
-From oxml 0.0.4 a prefixed name test resolves against bindings supplied
-to the query, and **an unbound prefix is a compile error** rather than
-a silent match. An unprefixed name test matches only nodes in no
-namespace, which is what XPath 1.0 specifies.
-
-That needs a `--ns prefix=uri` flag on this command, which is not
-implemented — see
-[doc/NAMESPACES.md](doc/NAMESPACES.md). Until it is, the
-`namespace-uri()` form above is the way to select on a namespace, and
-it keeps working in both versions.
 
 ### Is the output stable enough to parse?
 

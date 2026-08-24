@@ -28,6 +28,7 @@ COMMANDS:
 OPTIONS:
     -t, --text        Print matched nodes' text rather than a summary
     -c, --count       Print only the number of matches
+    -n, --ns P=URI    Bind a namespace prefix for `query`, repeatable
     -h, --help        Show this message
     -V, --version     Show the version
 
@@ -64,8 +65,23 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
 
     let text_only = args.iter().any(|a| a == "-t" || a == "--text");
     let count_only = args.iter().any(|a| a == "-c" || a == "--count");
-    let positional: Vec<&String> =
-        args.iter().filter(|a| !a.starts_with('-')).collect();
+    let namespaces = parse_namespace_bindings(args)?;
+    // `-n` takes a value, so the argument after it is not positional.
+    let mut positional: Vec<&String> = Vec::new();
+    let mut skip_next = false;
+    for arg in args {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+        if arg == "-n" || arg == "--ns" {
+            skip_next = true;
+            continue;
+        }
+        if !arg.starts_with('-') {
+            positional.push(arg);
+        }
+    }
 
     let command = positional
         .first()
@@ -77,7 +93,7 @@ fn run(args: &[String]) -> Result<ExitCode, String> {
                 .get(1)
                 .ok_or_else(|| "query needs an XPath expression".to_owned())?;
             let source = read_input(positional.get(2).map(|s| s.as_str()))?;
-            cmd_query(&source, expr, text_only, count_only)
+            cmd_query(&source, expr, text_only, count_only, &namespaces)
         }
         "validate" => {
             let xsd_path = positional
@@ -118,15 +134,80 @@ fn parse_or_report(source: &str) -> Result<oxml::Document, String> {
     })
 }
 
+/// Collect `-n PREFIX=URI` bindings, in order.
+///
+/// From oxml 0.0.4 a prefix in an expression resolves against bindings
+/// supplied with the query rather than against the document, and an
+/// unbound prefix is a compile error. Without a way to pass them,
+/// `//m:item` would have become unanswerable from the command line --
+/// a previously-wrong answer turning into an error with no remedy.
+///
+/// A malformed binding is a *usage* error, exit 2, not a query failure:
+/// the user made a mistake rather than the document.
+fn parse_namespace_bindings(
+    args: &[String],
+) -> Result<Vec<(String, String)>, String> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    let mut expecting = false;
+    for arg in args {
+        if expecting {
+            expecting = false;
+            let Some((prefix, uri)) = arg.split_once('=') else {
+                return Err(format!(
+                    "`{arg}` is not a namespace binding; write PREFIX=URI"
+                ));
+            };
+            if prefix.is_empty() {
+                return Err("a namespace binding needs a prefix".to_owned());
+            }
+            if prefix == "xml" {
+                return Err(
+                    "`xml` is bound by the specification and may not be \
+                     rebound"
+                        .to_owned(),
+                );
+            }
+            // Later bindings win, so a wrapper script can set defaults
+            // a caller overrides.
+            out.retain(|(p, _)| p != prefix);
+            out.push((prefix.to_owned(), uri.to_owned()));
+        } else if arg == "-n" || arg == "--ns" {
+            expecting = true;
+        }
+    }
+    if expecting {
+        return Err("`--ns` needs a PREFIX=URI argument".to_owned());
+    }
+    Ok(out)
+}
+
 fn cmd_query(
     source: &str,
     expr: &str,
     text_only: bool,
     count_only: bool,
+    namespaces: &[(String, String)],
 ) -> Result<ExitCode, String> {
     let doc = parse_or_report(source)?;
+    let bindings: Vec<(&str, &str)> = namespaces
+        .iter()
+        .map(|(prefix, uri)| (prefix.as_str(), uri.as_str()))
+        .collect();
     let xpath =
-        oxml::XPath::compile(expr).map_err(|e| format!("bad XPath: {e}"))?;
+        oxml::XPath::compile_with_namespaces(expr, &bindings).map_err(|e| {
+            // The library's message names a Rust function, which is no
+            // help to someone at a shell. Say what they can type.
+            if e.message.contains("unbound namespace prefix") {
+                let prefix =
+                    e.message.split('`').nth(1).unwrap_or("PREFIX").to_owned();
+                format!(
+                    "bad XPath: unbound namespace prefix `{prefix}`; \
+                     bind it with --ns {prefix}=URI"
+                )
+            } else {
+                format!("bad XPath: {e}")
+            }
+        })?;
     let value = xpath.evaluate(&doc);
 
     let Some(nodes) = value.nodes() else {
@@ -178,7 +259,11 @@ fn describe(doc: &oxml::Document, node: oxml::NodeId) -> String {
             let attrs: Vec<String> = doc
                 .attributes(node)
                 .iter()
-                .map(|a| format!(" {}=\"{}\"", a.name.local, a.value))
+                .map(|a| {
+                    let name =
+                        doc.name(a.name).map_or("?", |n| n.local.as_str());
+                    format!(" {name}=\"{}\"", a.value)
+                })
                 .collect();
             let text = doc.text(node);
             let preview = text.trim();
@@ -195,7 +280,8 @@ fn describe(doc: &oxml::Document, node: oxml::NodeId) -> String {
             }
         }
         Some(oxml::NodeKind::Attr(a)) => {
-            format!("{}=\"{}\"", a.name.local, a.value)
+            let name = doc.name(a.name).map_or("?", |n| n.local.as_str());
+            format!("{name}=\"{}\"", a.value)
         }
         Some(oxml::NodeKind::Text(t)) => truncate(t.trim(), 80),
         Some(oxml::NodeKind::Comment(c)) => {

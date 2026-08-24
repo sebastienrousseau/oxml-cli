@@ -32,22 +32,23 @@ expect "a predicate on an attribute" 0 'Dune' \
 expect "the attribute axis" 0 'en
 fr' -- query -t '//book/@lang' "$DATA/catalogue.xml"
 
-# Namespace prefixes are NOT resolved in a name test: `//@isbn` and
-# `//@m:isbn` both select the namespaced attribute. This is a known
-# defect in the library.
-expect "a name test ignores the prefix" 0 '978-0441013593
-978-2070413119' -- query -t '//@isbn' "$DATA/catalogue.xml"
+# An unprefixed name test matches only nodes in no namespace, which is
+# what XPath 1.0 specifies -- so `//@isbn` no longer finds the
+# namespaced attribute.
+expect "an unprefixed name test skips namespaced nodes" 1 '' \
+  -- query -t '//@isbn' "$DATA/catalogue.xml"
 
-# Selecting by namespace instead needs `namespace-uri()` to work on
-# attribute nodes, which is fixed in oxml 0.0.4. Until this crate
-# depends on it, the assertion is skipped rather than deleted -- a
-# commented-out test is one nobody reinstates.
-if [[ "${OXML_NAMESPACE_FIX:-0}" == "1" ]]; then
-  expect "selecting an attribute by namespace URI" 0 '978-0441013593
+# Selecting by namespace. This was skipped until oxml 0.0.4, because
+# `namespace-uri()` returned the empty string for every attribute node.
+expect "selecting an attribute by namespace URI" 0 '978-0441013593
 978-2070413119' -- query -t \
-    "//@*[namespace-uri()='urn:example:meta']" "$DATA/catalogue.xml"
-else
-  echo "skip: selecting by namespace URI (needs oxml 0.0.4)"
-fi
+  "//@*[namespace-uri()='urn:example:meta']" "$DATA/catalogue.xml"
+
+# And with a prefix bound on the command line, which is what --ns is
+# for: from 0.0.4 an unbound prefix is an error rather than a silent
+# match on the local part.
+expect "a bound prefix selects only that namespace" 0 '978-0441013593
+978-2070413119' -- query -n m=urn:example:meta -t '//@m:isbn' \
+  "$DATA/catalogue.xml"
 
 finish
