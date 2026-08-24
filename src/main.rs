@@ -371,3 +371,115 @@ fn cmd_check(source: &str) -> ExitCode {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::parse_namespace_bindings;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| (*s).to_owned()).collect()
+    }
+
+    #[test]
+    fn a_binding_is_collected() {
+        let got = parse_namespace_bindings(&args(&[
+            "query", "-n", "m=urn:u", "//m:x",
+        ]))
+        .expect("valid");
+        assert_eq!(got, vec![("m".to_owned(), "urn:u".to_owned())]);
+    }
+
+    #[test]
+    fn the_long_form_works_too() {
+        let got = parse_namespace_bindings(&args(&["--ns", "m=urn:u"]))
+            .expect("valid");
+        assert_eq!(got.len(), 1);
+    }
+
+    #[test]
+    fn bindings_accumulate_and_later_ones_win() {
+        // Later wins, so a wrapper script can set defaults a caller
+        // overrides on the same command line.
+        let got = parse_namespace_bindings(&args(&[
+            "-n",
+            "a=urn:one",
+            "-n",
+            "b=urn:two",
+            "-n",
+            "a=urn:three",
+        ]))
+        .expect("valid");
+        assert_eq!(
+            got,
+            vec![
+                ("b".to_owned(), "urn:two".to_owned()),
+                ("a".to_owned(), "urn:three".to_owned()),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_uri_may_contain_an_equals_sign() {
+        // Split on the *first* `=`; a URI with a query string is
+        // ordinary and must not be truncated.
+        let got = parse_namespace_bindings(&args(&["-n", "m=urn:u?a=b&c=d"]))
+            .expect("valid");
+        assert_eq!(got[0].1, "urn:u?a=b&c=d");
+    }
+
+    #[test]
+    fn an_empty_uri_is_allowed() {
+        // Binding a prefix to the empty string is unusual but not a
+        // usage error; the library decides what it means.
+        let got =
+            parse_namespace_bindings(&args(&["-n", "m="])).expect("valid");
+        assert_eq!(got[0].1, "");
+    }
+
+    #[test]
+    fn a_binding_without_an_equals_sign_is_rejected() {
+        let err = parse_namespace_bindings(&args(&["-n", "bogus"]))
+            .expect_err("no `=`");
+        assert!(err.contains("PREFIX=URI"), "{err}");
+    }
+
+    #[test]
+    fn a_binding_needs_a_prefix() {
+        let err = parse_namespace_bindings(&args(&["-n", "=urn:u"]))
+            .expect_err("no prefix");
+        assert!(err.contains("prefix"), "{err}");
+    }
+
+    #[test]
+    fn the_xml_prefix_may_not_be_rebound() {
+        // Bound by the specification. Rebinding it is not something a
+        // document can do either.
+        let err = parse_namespace_bindings(&args(&["-n", "xml=urn:u"]))
+            .expect_err("reserved");
+        assert!(err.contains("xml"), "{err}");
+    }
+
+    #[test]
+    fn a_trailing_flag_with_no_value_is_rejected() {
+        let err = parse_namespace_bindings(&args(&["query", "//x", "-n"]))
+            .expect_err("no value");
+        assert!(err.contains("PREFIX=URI"), "{err}");
+    }
+
+    #[test]
+    fn the_next_argument_is_taken_even_if_it_looks_like_a_flag() {
+        // `-n -t` is a mistake worth reporting rather than silently
+        // treating `-t` as a separate option and consuming the
+        // argument after it.
+        let err = parse_namespace_bindings(&args(&["-n", "-t", "//x"]))
+            .expect_err("flag as value");
+        assert!(err.contains("PREFIX=URI"), "{err}");
+    }
+
+    #[test]
+    fn no_bindings_is_not_an_error() {
+        let got =
+            parse_namespace_bindings(&args(&["query", "//x"])).expect("valid");
+        assert!(got.is_empty());
+    }
+}
