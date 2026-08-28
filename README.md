@@ -268,9 +268,9 @@ Diagnostics go to stderr. It is meant to be piped.
 - Standard input, so it composes with pipes
 - Exit codes distinguishing "no match" from "usage error"
 - UTF-8, UTF-16 and ISO-8859-1 input
+- Namespace prefixes bound on the command line with `-n, --ns`
 
-**Not yet:** formatting or pretty-printing, editing, XInclude, XSLT,
-namespace prefix bindings on the command line.
+**Not yet:** formatting or pretty-printing, editing, XInclude, XSLT.
 
 ## Ecosystem comparison
 
@@ -326,10 +326,9 @@ Resource limits use `oxml`'s defaults. A future release will expose
 - **You need to edit XML.** `xmlstarlet ed` does; this does not.
 - **You need to format or pretty-print.** `xmllint --format` does.
 - **You need XSLT.** `xsltproc`.
-- **You need XPath 2.0 or 3.1.** This is 1.0.
+- **You need XPath 2.0 or 3.1.** This is 1.0, so no `matches()`, no
+  `for`, no sequences.
 - **The document is larger than memory.** The whole tree is built.
-- **You need namespace prefixes bound on the command line.** Not yet;
-  filter with `namespace-uri()` in the expression instead.
 
 ## FAQ
 
