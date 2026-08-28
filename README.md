@@ -287,14 +287,20 @@ Diagnostics go to stderr. It is meant to be piped.
 
 ## Benchmarks
 
-None are published here, and that is deliberate: the same benchmark
-binary in this suite measured 14.7 and 123.1 MB/s on one machine on one
-day, at a load average above 30. A figure without its conditions is not
-a measurement.
+```bash
+cargo bench --bench commands
+```
 
-For a CLI the number that matters is usually startup plus parse, and
-for documents small enough to sit in a shell pipeline both are
-dominated by process creation. See
+Per invocation, with process spawn excluded — spawn is the operating
+system's business and swamps everything else on a small document.
+Argument handling and file I/O add roughly 9% over the bare parse on a
+200 KB file; `--help` costs a fraction of a microsecond.
+
+No absolute throughput figure is published, and that is deliberate: the
+same benchmark binary in this suite measured 14.7 and 123.1 MB/s on one
+machine on one day, at a load average above 30. A figure without its
+conditions is not a measurement, so the benchmark reports paired
+comparisons instead. See
 [oxml's BENCHMARKS.md](https://github.com/sebastienrousseau/oxml/blob/main/doc/BENCHMARKS.md).
 
 ## Examples

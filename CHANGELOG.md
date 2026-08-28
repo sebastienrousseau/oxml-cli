@@ -5,6 +5,47 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **A library target.** Every command moved from `src/main.rs` to
+  `src/lib.rs`, and `run` now takes its output and error streams as
+  parameters rather than calling `println!`. The binary supplies the
+  process's own streams.
+
+  This is what the unit tests had been missing. They could previously
+  only assert `is_ok()`, because output went straight to the process's
+  stdout -- a query that exited 0 having printed the wrong answer
+  passed. They now assert the text.
+
+- `benches/commands.rs`, measuring each subcommand per invocation with
+  process spawn excluded. Argument handling and file I/O add roughly
+  9% over the bare parse on a 200 KB file, measured as a paired
+  comparison.
+
+- An **Examples** job in CI.
+
+### Changed
+
+- **`stats` reports namespace nodes and a remainder.** Its lines
+  stopped at comments while `nodes` counted everything, so on any
+  document declaring a namespace the breakdown was two short of its
+  own total and looked like an arithmetic error. Every kind is now
+  printed and the sum is asserted.
+
+### Fixed
+
+- **The examples were not run by CI**, though README.md and
+  doc/TESTING.md both said they were. Two assertions in `inspect.sh`
+  had been failing against the published `oxml` for a release: the
+  sample document's node total moved from 21 to 23 when namespace
+  nodes entered the arena, and nothing noticed.
+
+- `cmd_query` took a fresh lock on the process's stdout inside its
+  node-set branch. Harmless while the only caller was the binary;
+  found immediately once the stream became a parameter.
+
 ## [0.0.6] - 2026-08-26
 
 ### Changed
