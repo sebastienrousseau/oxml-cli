@@ -4,16 +4,21 @@
 # it is well-formed at all.
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
+# The lines add up to `nodes`: the sample declares one namespace, and
+# `xml` is bound implicitly in every document, so two of the 23 are
+# namespace nodes and one is the document root.
 expect "stats counts by node kind" 0 \
-'nodes       21
+'nodes       23
 elements    7
 attributes  4
 text        8
 comments    1
+namespaces  2
+other       1
 max depth   4' -- stats "$DATA/catalogue.xml"
 
 expect "check accepts a well-formed document" 0 \
-  'well-formed (21 nodes)' -- check "$DATA/catalogue.xml"
+  'well-formed (23 nodes)' -- check "$DATA/catalogue.xml"
 
 # Exit 1 and a line:column position. The position counts characters,
 # so it is the column an editor shows.

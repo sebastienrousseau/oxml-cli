@@ -35,6 +35,23 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --all-features
 
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # The README and doc/TESTING.md both say these run in CI. Until
+      # 0.0.7 they did not, and two assertions in `inspect.sh` had
+      # been failing against the published oxml for a release: the
+      # sample document's node total moved when namespace nodes
+      # entered the arena. A claim that a check runs is worth nothing
+      # unless something runs it.
+      - run: cargo build --release
+      - name: Run every example, which asserts its own output
+        run: OXML="$PWD/target/release/oxml" ./examples/run-all.sh
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
