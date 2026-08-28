@@ -381,3 +381,69 @@ fn a_bare_invocation_prints_usage_and_succeeds() {
     assert!(out.stdout.contains("USAGE"), "{}", out.stdout);
     assert!(out.stderr.is_empty(), "{}", out.stderr);
 }
+
+/// `--ns` binds a prefix for the query expression.
+///
+/// Untested until now, and the README paid for it: the "Not yet" list
+/// claimed namespace prefixes on the command line were unimplemented
+/// while the options table two hundred lines above documented `--ns`
+/// and the unbound-prefix error told you to use it. A feature nothing
+/// exercises is a feature the documentation stops believing in.
+#[test]
+fn ns_binds_a_prefix_for_the_query() {
+    const NS: &str = r#"<r xmlns:m="urn:x"><m:a>hit</m:a><b>miss</b></r>"#;
+
+    let out = run(&["query", "--ns", "m=urn:x", "//m:a", "-t"], NS);
+    assert_eq!(out.code, 0, "{}", out.stderr);
+    assert_eq!(out.stdout, "hit\n");
+
+    // The short form is the same flag.
+    let short = run(&["query", "-n", "m=urn:x", "//m:a", "-t"], NS);
+    assert_eq!(short.stdout, "hit\n", "{}", short.stderr);
+}
+
+/// An unbound prefix is refused, and the message says how to fix it.
+#[test]
+fn an_unbound_prefix_is_refused_with_the_remedy() {
+    const NS: &str = r#"<r xmlns:m="urn:x"><m:a>hit</m:a></r>"#;
+    let out = run(&["query", "//m:a", "-t"], NS);
+    assert_ne!(out.code, 0, "an unbound prefix must not silently match");
+    assert!(
+        out.stderr.contains("--ns"),
+        "the error should name the flag that fixes it: {}",
+        out.stderr
+    );
+}
+
+/// The flag is repeatable, which is the only way to query across two
+/// namespaces at once.
+#[test]
+fn ns_is_repeatable() {
+    const TWO: &str = r#"<r xmlns:m="urn:x" xmlns:n="urn:y">
+        <m:a>one</m:a><n:b>two</n:b></r>"#;
+    let out = run(
+        &[
+            "query",
+            "--ns",
+            "m=urn:x",
+            "--ns",
+            "n=urn:y",
+            "//m:a|//n:b",
+            "-t",
+        ],
+        TWO,
+    );
+    assert_eq!(out.code, 0, "{}", out.stderr);
+    assert_eq!(out.stdout, "one\ntwo\n");
+}
+
+/// A prefix bound to the wrong URI matches nothing.
+///
+/// The binding is by URI, not by spelling: matching on the prefix
+/// would make `--ns` decorative.
+#[test]
+fn a_prefix_bound_to_the_wrong_uri_matches_nothing() {
+    const NS: &str = r#"<r xmlns:m="urn:x"><m:a>hit</m:a></r>"#;
+    let out = run(&["query", "--ns", "m=urn:WRONG", "//m:a", "-c"], NS);
+    assert_eq!(out.stdout.trim(), "0", "{}", out.stderr);
+}
