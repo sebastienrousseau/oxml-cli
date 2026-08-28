@@ -432,11 +432,28 @@ Yes. CI builds and tests on Linux, macOS and Windows.
 ## Development
 
 ```bash
-cargo test
+./scripts/gate.sh
+```
+
+That runs everything CI runs, in the order that fails fastest: format,
+clippy, tests, rustdoc, the `#![forbid(unsafe_code)]` check, the
+examples, the 95% coverage floor and an MSRV build. It pins the
+toolchain rather than trusting `rust-toolchain.toml`, because a
+`RUSTUP_TOOLCHAIN` in the environment silently overrides that file and
+a lint that exists in one release and not another then makes a green
+local run and a red CI one.
+
+The individual steps, if you want them one at a time:
+
+```bash
+cargo test --all-features
 cargo clippy --all-targets --all-features -- -D warnings
 cargo fmt --all --check
-./examples/run-all.sh
+cargo bench --bench commands
+OXML="$PWD/target/release/oxml" ./examples/run-all.sh
 ```
+
+CI runs the same set on Linux, macOS and Windows.
 
 ## Security
 
