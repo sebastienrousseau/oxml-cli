@@ -1,0 +1,29 @@
+[workspace]
+
+[package]
+name = "oxml-cli-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.oxml-cli]
+path = ".."
+
+# Fuzzing wants the optimised build; debug assertions stay on so
+# overflow checks and `debug_assert!` still fire on found inputs.
+[profile.release]
+debug = true
+debug-assertions = true
+overflow-checks = true
+
+[[bin]]
+name = "run_args"
+path = "fuzz_targets/run_args.rs"
+test = false
+doc = false
