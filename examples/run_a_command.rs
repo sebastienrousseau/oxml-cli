@@ -20,7 +20,8 @@ fn main() {
 
     let mut out = Vec::new();
     let mut err = Vec::new();
-    let code = oxml_cli::run(&args, &mut out, &mut err).expect("the command should run");
+    let code = oxml_cli::run(&args, &mut out, &mut err)
+        .expect("the command should run");
 
     print!("{}", String::from_utf8_lossy(&out));
     assert_eq!(
