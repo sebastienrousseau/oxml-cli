@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-08-29
+
+### Added
+
+- A fuzz target over the hand-rolled argument parser, run for 300
+  seconds on every pull request.
+
+- **The examples are measured against the public API.** Every `pub fn`
+  must be *executed* by an example, not merely mentioned. The README
+  claimed this coverage; nothing checked it.
+
+### Security
+
+- **`cargo audit` and `cargo deny` now actually run.** The Best
+  Practices badge stated they ran against the RustSec advisory
+  database. They did not -- only `oxml` had the workflow, and the
+  claim had been copied here with the rest of the badge answers. This
+  crate has a real dependency tree, so nothing was watching it for a
+  published advisory between releases.
+
+- Every action pinned by commit SHA, branch coverage gated, CodeQL
+  added, and the Developer Certificate of Origin enforced.
+
 ## [0.0.7] - 2026-08-28
 
 ### Changed

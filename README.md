@@ -38,7 +38,7 @@
 - [Reading from standard input](#reading-from-standard-input)
 - [Migration](#migration) — from `xmllint`, `xq`, `xmlstarlet`
 - [Why this approach?](#why-this-approach)
-- [Capabilities in 0.0.7](#capabilities-in-007)
+- [Capabilities in 0.0.8](#capabilities-in-008)
 - [Ecosystem comparison](#ecosystem-comparison)
 - [Benchmarks](#benchmarks)
 
@@ -110,7 +110,7 @@ max depth   4
 | [`oxml-lsp`](https://github.com/sebastienrousseau/oxml-lsp) | Language Server Protocol server |
 
 All six ship one version number, moving in steps of 0.0.1. `oxml-cli
-0.0.7` goes with `oxml 0.0.7`, and no other combination is supported.
+0.0.8` goes with `oxml 0.0.8`, and no other combination is supported.
 
 ## Commands
 
@@ -260,7 +260,7 @@ pointed at files from elsewhere, that matters more than throughput.
 **Predictable output.** One match per line, nothing else on stdout.
 Diagnostics go to stderr. It is meant to be piped.
 
-## Capabilities in 0.0.7
+## Capabilities in 0.0.8
 
 - XPath 1.0 queries: ten axes, 25 functions, all four value types
 - Text-only and count-only output modes
