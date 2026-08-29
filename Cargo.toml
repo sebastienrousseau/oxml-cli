@@ -25,6 +25,10 @@ path = "src/main.rs"
 oxml = "0.0.7"
 xmlschema = "0.0.7"
 
+[[example]]
+name = "run_a_command"
+path = "examples/run_a_command.rs"
+
 [[bench]]
 name = "commands"
 path = "benches/commands.rs"
