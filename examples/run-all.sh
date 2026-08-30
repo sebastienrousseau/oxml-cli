@@ -13,7 +13,12 @@ fi
 echo "using $OXML"
 
 status=0
-for script in query-basics.sh inspect.sh pipeline.sh validate.sh; do
+for script in *.sh; do
+  # Do not recurse into run-all.sh itself.
+  [[ "$script" == "run-all.sh" ]] && continue
+  # lib.sh is a helper sourced by other scripts, not a standalone example.
+  [[ "$script" == "lib.sh" ]] && continue
+
   echo
   echo "=== $script ==="
   bash "$script" || status=1
