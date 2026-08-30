@@ -48,7 +48,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo fmt --all --check
 ```
 
-61 tests: 29 in the library over argument parsing and each command,
+62 tests: 30 in the library over argument parsing and each command,
 32 over the binary end to end.
 
 ### Why the commands take their output stream as a parameter
