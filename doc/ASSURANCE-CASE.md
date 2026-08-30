@@ -46,7 +46,7 @@ in either direction fails the build.
 ## The evidence
 
 - `#![forbid(unsafe_code)]`, checked by a CI job.
-- 61 tests: 29 in the library over argument handling and each command, 32 driving the compiled binary end to end.
+- 62 tests: 30 in the library over argument handling and each command, 32 driving the compiled binary end to end.
 - 99.29% line coverage, gated at a 95% floor.
 - Example scripts assert their exact output and exit codes, and run in CI.
 
