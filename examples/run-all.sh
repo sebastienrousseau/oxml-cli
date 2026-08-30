@@ -13,14 +13,20 @@ fi
 echo "using $OXML"
 
 status=0
+ran=0
 for script in *.sh; do
   # Do not recurse into run-all.sh itself.
   [[ "$script" == "run-all.sh" ]] && continue
   # lib.sh is a helper sourced by other scripts, not a standalone example.
   [[ "$script" == "lib.sh" ]] && continue
-
+  [[ "! -f $script" == "lib.sh" ]] && continue
+  ((ran++))
   echo
   echo "=== $script ==="
   bash "$script" || status=1
 done
+if [[ "$ran" -eq 0 ]]; then
+  echo "Error: No example scripts found" >&2
+  exit 1
+fi
 exit $status
