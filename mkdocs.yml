@@ -2,7 +2,7 @@
 site_name: oxml-cli
 site_description: >-
   Command-line XML querying, validation, and formatting, powered by oxml.
-site_url: https://sebastienrousseau.github.io/oxml-cli/
+site_url: https://cli.oxmllib.com/
 site_author: Sebastien Rousseau
 copyright: Copyright &copy; 2026 <a href="https://sebastienrousseau.com/" rel="author">Sebastien Rousseau</a>
 
