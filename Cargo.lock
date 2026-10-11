@@ -4,9 +4,7 @@ version = 4
 
 [[package]]
 name = "oxml"
-version = "0.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21cfe82a88f49f99d04270f9c40041e372b3fc12050c140e84e672810e82a651"
+version = "0.0.10"
 
 [[package]]
 name = "oxml-cli"
@@ -18,9 +16,7 @@ dependencies = [
 
 [[package]]
 name = "xmlschema"
-version = "0.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "802990c0b7595d66945fb7b1b3424c8b61e2244bbcf55556c40a4c7dc8f9100e"
+version = "0.0.10"
 dependencies = [
  "oxml",
 ]

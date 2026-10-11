@@ -45,8 +45,8 @@ name = "oxml"
 path = "src/main.rs"
 
 [dependencies]
-oxml = "0.0.9"
-xmlschema = "0.0.9"
+oxml = "0.0.10"
+xmlschema = "0.0.10"
 
 [[example]]
 name = "run_a_command"
