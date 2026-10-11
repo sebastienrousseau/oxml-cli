@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Upgrade to `oxml` 0.0.10 and `xmlschema` 0.0.10.** `//a[1]` now returns
+  the first `a` under every parent, as XPath 1.0 specifies; write `(//a)[1]`
+  for the first match in the document. `!=` and `<`/`>` on node-sets are
+  existential. Expressions over 10,000 operators or 256 nesting levels are
+  rejected at compile time.
 - **Ecosystem release cycle v0.0.10.** Begin next iteration cycle across the
   entire lockstep suite.
 - **Documentation migration.** Migrated website and rendered manual to
