@@ -108,18 +108,32 @@ pub fn run(
 /// Read from a path, or standard input when none is given.
 fn read_input(path: Option<&str>) -> Result<String, String> {
     if let Some(p) = path {
-        std::fs::read_to_string(p).map_err(|e| format!("cannot read {p}: {e}"))
+        let file = std::fs::File::open(p)
+            .map_err(|e| format!("cannot read {p}: {e}"))?;
+        read_bounded(file, p)
     } else {
-        let mut buf = String::new();
-        let _ = std::io::stdin()
-            .read_to_string(&mut buf)
-            .map_err(|e| format!("cannot read stdin: {e}"))?;
-        Ok(buf)
+        read_bounded(std::io::stdin().lock(), "stdin")
     }
 }
 
+fn read_bounded(
+    input: impl std::io::Read,
+    label: &str,
+) -> Result<String, String> {
+    const MAX_INPUT_BYTES: usize = 8 * 1024 * 1024;
+    let mut buf = String::new();
+    let _ = input
+        .take((MAX_INPUT_BYTES + 1) as u64)
+        .read_to_string(&mut buf)
+        .map_err(|e| format!("cannot read {label}: {e}"))?;
+    if buf.len() > MAX_INPUT_BYTES {
+        return Err(format!("{label} exceeds the 8 MiB input limit"));
+    }
+    Ok(buf)
+}
+
 fn parse_or_report(source: &str) -> Result<oxml::Document, String> {
-    oxml::parse(source).map_err(|e| {
+    oxml::parse_with(source, oxml::Limits::strict()).map_err(|e| {
         let (line, col) = e.line_column(source);
         format!("{line}:{col}: {e}")
     })
@@ -219,6 +233,31 @@ fn parse_namespace_bindings(
     Ok(out)
 }
 
+fn evaluate_query(
+    source: &str,
+    expr: &str,
+    namespaces: &[(String, String)],
+) -> Result<(oxml::Document, oxml::xpath::Value), String> {
+    let doc = parse_or_report(source)?;
+    let bindings: Vec<(&str, &str)> = namespaces
+        .iter()
+        .map(|(prefix, uri)| (prefix.as_str(), uri.as_str()))
+        .collect();
+    let xpath = oxml::XPath::compile_with_namespaces_and_limits(
+        expr,
+        &bindings,
+        &oxml::Limits::strict(),
+    )
+    .map_err(|e| explain_xpath_error(&e))?;
+    let context = oxml::xpath::EvalContext::new()
+        .with_limits(oxml::xpath::EvalLimits::default());
+    let value = xpath
+        .evaluate_with(&doc, &context)
+        .map_err(|e| e.to_string())?;
+
+    Ok((doc, value))
+}
+
 fn cmd_query(
     source: &str,
     expr: &str,
@@ -227,14 +266,7 @@ fn cmd_query(
     namespaces: &[(String, String)],
     out: &mut dyn Write,
 ) -> Result<ExitCode, String> {
-    let doc = parse_or_report(source)?;
-    let bindings: Vec<(&str, &str)> = namespaces
-        .iter()
-        .map(|(prefix, uri)| (prefix.as_str(), uri.as_str()))
-        .collect();
-    let xpath = oxml::XPath::compile_with_namespaces(expr, &bindings)
-        .map_err(|e| explain_xpath_error(&e))?;
-    let value = xpath.evaluate(&doc);
+    let (doc, value) = evaluate_query(source, expr, namespaces)?;
 
     let Some(nodes) = value.nodes() else {
         // A non-node-set result — a count, a string, a boolean — is
@@ -329,8 +361,7 @@ fn cmd_validate(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<ExitCode, String> {
-    let xsd = std::fs::read_to_string(xsd_path)
-        .map_err(|e| format!("cannot read {xsd_path}: {e}"))?;
+    let xsd = read_input(Some(xsd_path))?;
     let schema = xmlschema::parse_schema(&xsd)
         .map_err(|e| format!("bad schema: {e}"))?;
     let doc = parse_or_report(source)?;
@@ -411,7 +442,7 @@ fn cmd_check(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> ExitCode {
-    match oxml::parse(source) {
+    match oxml::parse_with(source, oxml::Limits::strict()) {
         Ok(doc) => {
             let _ = writeln!(out, "well-formed ({} nodes)", doc.len());
             ExitCode::SUCCESS

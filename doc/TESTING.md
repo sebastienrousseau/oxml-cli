@@ -48,8 +48,8 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo fmt --all --check
 ```
 
-62 tests: 30 in the library over argument parsing and each command,
-32 over the binary end to end.
+64 tests: 30 in the library over argument parsing and each command,
+32 over the binary end to end, and two resource-budget regressions.
 
 ### Why the commands take their output stream as a parameter
 
@@ -86,8 +86,10 @@ broke is not much use.
 
 ## Coverage
 
-Line coverage is gated in CI at a 95% floor. **Branch coverage is
-93.8%**, gated at 80.
+Line coverage is gated in CI at a 95% floor; branch coverage is gated
+at 80%. The previously recorded 93.8% branch figure is a historical
+snapshot without an attached source head, not a measurement of this
+release candidate. Use the branch job for its exact-head result.
 
 Branch coverage needs a nightly toolchain: `cargo llvm-cov --branch`
 does not build on the version this project pins. It was recorded as

@@ -28,6 +28,6 @@ expect "check rejects a truncated document" 1 \
 
 # Exit 2 is a usage error, distinct from exit 1 for a bad document.
 expect "an unknown command is a usage error" 2 \
-  'oxml: unknown command `bogus`; try `oxml --help`' -- bogus
+  "oxml: unknown command \`bogus\`; try \`oxml --help\`" -- bogus
 
 finish

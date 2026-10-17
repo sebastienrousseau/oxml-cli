@@ -1,12 +1,11 @@
 [package]
 name = "oxml-cli"
-version = "0.0.10"
+version = "0.0.11"
 edition = "2024"
-rust-version = "1.86.0"
+rust-version = "1.89.0"
 license = "MIT OR Apache-2.0"
 description = "Command-line XML querying, validation and formatting, powered by oxml"
 repository = "https://github.com/sebastienrousseau/oxml-cli"
-homepage = "https://github.com/sebastienrousseau/oxml-cli"
 documentation = "https://docs.rs/oxml-cli"
 readme = "README.md"
 keywords = ["xml", "xpath", "cli", "xsd", "validate"]
@@ -45,8 +44,8 @@ name = "oxml"
 path = "src/main.rs"
 
 [dependencies]
-oxml = "0.0.10"
-xmlschema = "0.0.10"
+oxml = "=0.0.11"
+xmlschema = "=0.0.11"
 
 [[example]]
 name = "run_a_command"
