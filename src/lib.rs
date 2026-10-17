@@ -233,14 +233,11 @@ fn parse_namespace_bindings(
     Ok(out)
 }
 
-fn cmd_query(
+fn evaluate_query(
     source: &str,
     expr: &str,
-    text_only: bool,
-    count_only: bool,
     namespaces: &[(String, String)],
-    out: &mut dyn Write,
-) -> Result<ExitCode, String> {
+) -> Result<(oxml::Document, oxml::xpath::Value), String> {
     let doc = parse_or_report(source)?;
     let bindings: Vec<(&str, &str)> = namespaces
         .iter()
@@ -257,6 +254,19 @@ fn cmd_query(
     let value = xpath
         .evaluate_with(&doc, &context)
         .map_err(|e| e.to_string())?;
+
+    Ok((doc, value))
+}
+
+fn cmd_query(
+    source: &str,
+    expr: &str,
+    text_only: bool,
+    count_only: bool,
+    namespaces: &[(String, String)],
+    out: &mut dyn Write,
+) -> Result<ExitCode, String> {
+    let (doc, value) = evaluate_query(source, expr, namespaces)?;
 
     let Some(nodes) = value.nodes() else {
         // A non-node-set result — a count, a string, a boolean — is
