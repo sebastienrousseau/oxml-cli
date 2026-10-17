@@ -13,7 +13,7 @@
   <a href="https://crates.io/crates/oxml-cli"><img src="https://img.shields.io/crates/v/oxml-cli.svg?style=for-the-badge&color=fc8d62&logo=rust" alt="Crates.io" /></a>
   <a href="https://docs.rs/oxml-cli"><img src="https://img.shields.io/badge/docs.rs-oxml--cli-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" alt="Docs.rs" /></a>
   <a href="https://lib.rs/crates/oxml-cli"><img src="https://img.shields.io/badge/lib.rs-oxml--cli-orange.svg?style=for-the-badge" alt="lib.rs" /></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/oxml-cli"><img src="https://img.shields.io/ossf-scorecard/github.com/sebastienrousseau/oxml-cli?style=for-the-badge&label=OpenSSF%20Scorecard&logo=openssf" alt="OpenSSF Scorecard" /></a>
+  <a href="https://github.com/sebastienrousseau/oxml-cli/actions/workflows/scorecard.yml"><img src="https://img.shields.io/github/actions/workflow/status/sebastienrousseau/oxml-cli/scorecard.yml?style=for-the-badge&label=Scorecard%20scan&logo=openssf" alt="Scorecard scan workflow status" /></a>
   <a href="https://www.bestpractices.dev/projects/14311"><img src="https://img.shields.io/cii/level/14311?style=for-the-badge&label=OpenSSF%20Best%20Practices&logo=openssf" alt="OpenSSF Best Practices" /></a>
 </p>
 
@@ -462,6 +462,11 @@ OXML="$PWD/target/release/oxml" ./examples/run-all.sh
 CI runs the same set on Linux, macOS and Windows.
 
 ## Security
+
+Scorecard scans use a digest-pinned upstream image. Results are retained
+as CI artifacts and repository posture findings in GitHub code scanning,
+not published to Scorecard's public service. The badge shows workflow
+status, not a security score; a successful scan can still report findings.
 
 The parser underneath never dereferences external entities, so XXE is
 foreclosed structurally rather than by a default. Entity expansion is
