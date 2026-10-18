@@ -13,7 +13,7 @@
   <a href="https://crates.io/crates/oxml-cli"><img src="https://img.shields.io/crates/v/oxml-cli.svg?style=for-the-badge&color=fc8d62&logo=rust" alt="Crates.io" /></a>
   <a href="https://docs.rs/oxml-cli"><img src="https://img.shields.io/badge/docs.rs-oxml--cli-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" alt="Docs.rs" /></a>
   <a href="https://lib.rs/crates/oxml-cli"><img src="https://img.shields.io/badge/lib.rs-oxml--cli-orange.svg?style=for-the-badge" alt="lib.rs" /></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/sebastienrousseau/oxml-cli"><img src="https://img.shields.io/ossf-scorecard/github.com/sebastienrousseau/oxml-cli?style=for-the-badge&label=OpenSSF%20Scorecard&logo=openssf" alt="OpenSSF Scorecard" /></a>
+  <a href="https://github.com/sebastienrousseau/oxml-cli/actions/workflows/scorecard.yml"><img src="https://img.shields.io/github/actions/workflow/status/sebastienrousseau/oxml-cli/scorecard.yml?style=for-the-badge&label=Scorecard%20scan&logo=openssf" alt="Scorecard scan workflow status" /></a>
   <a href="https://www.bestpractices.dev/projects/14311"><img src="https://img.shields.io/cii/level/14311?style=for-the-badge&label=OpenSSF%20Best%20Practices&logo=openssf" alt="OpenSSF Best Practices" /></a>
 </p>
 
@@ -32,7 +32,7 @@
 
 **The oxml ecosystem**
 
-- [The oxml ecosystem](#the-oxml-ecosystem) — six crates, one version
+- [The oxml ecosystem](#the-oxml-ecosystem) — seven crates, one version
 
 **Reference**
 
@@ -42,7 +42,7 @@
 - [Reading from standard input](#reading-from-standard-input)
 - [Migration](#migration) — from `xmllint`, `xq`, `xmlstarlet`
 - [Why this approach?](#why-this-approach)
-- [Capabilities in 0.0.8](#capabilities-in-008)
+- [Capabilities in 0.0.11](#capabilities-in-0011)
 - [Ecosystem comparison](#ecosystem-comparison)
 - [Benchmarks](#benchmarks)
 
@@ -63,7 +63,7 @@
 ## Install
 
 ```bash
-cargo install oxml-cli
+cargo install oxml-cli --version 0.0.11 --locked
 ```
 
 From source:
@@ -112,9 +112,10 @@ max depth   4
 | [`oxml-wasm`](https://github.com/sebastienrousseau/oxml-wasm) | WebAssembly bindings |
 | [`oxml-mcp`](https://github.com/sebastienrousseau/oxml-mcp) | Model Context Protocol server |
 | [`oxml-lsp`](https://github.com/sebastienrousseau/oxml-lsp) | Language Server Protocol server |
+| [`oxml-json`](https://github.com/sebastienrousseau/oxml-json) | JSON support for the language server |
 
-All six ship one version number, moving in steps of 0.0.1. `oxml-cli
-0.0.8` goes with `oxml 0.0.8`, and no other combination is supported.
+All seven ship one version number, moving in steps of 0.0.1. `oxml-cli
+0.0.11` goes with `oxml 0.0.11`, and no other combination is supported.
 
 ## Commands
 
@@ -264,7 +265,7 @@ pointed at files from elsewhere, that matters more than throughput.
 **Predictable output.** One match per line, nothing else on stdout.
 Diagnostics go to stderr. It is meant to be piped.
 
-## Capabilities in 0.0.8
+## Capabilities in 0.0.11
 
 - XPath 1.0 queries: ten axes, 25 functions, all four value types
 - Text-only and count-only output modes
@@ -330,8 +331,9 @@ depends on a file somewhere in your home directory behaves differently
 in CI than on your laptop, and the difference surfaces as a confusing
 failure. Everything `oxml` does is on the command line.
 
-Resource limits use `oxml`'s defaults. A future release will expose
-`--strict` for documents from untrusted sources.
+File and stdin reads stop at 8 MiB. Parsing and XPath compilation use
+`Limits::strict()`; each query uses `EvalLimits::default()` to bound work,
+intermediate nodes and strings. Exceeding a budget is an error, not a partial result.
 
 ## When not to use oxml-cli
 
@@ -408,11 +410,9 @@ file. See
 
 ### Why no `--format`?
 
-Because formatting requires serialisation, and the library reads but
-does not write. Adding it means adding a writer, which is a larger
-piece of work than it appears — round-tripping comments, entity
-references, attribute order and whitespace correctly is most of the
-difficulty.
+The core supports serialization, but this CLI does not expose a format
+subcommand. Use the core serializer or the MCP `xml_format` tool when
+formatting is required.
 
 ### What happens on a document that is not well-formed?
 
@@ -462,6 +462,11 @@ OXML="$PWD/target/release/oxml" ./examples/run-all.sh
 CI runs the same set on Linux, macOS and Windows.
 
 ## Security
+
+Scorecard scans use a digest-pinned upstream image. Results are retained
+as CI artifacts and repository posture findings in GitHub code scanning,
+not published to Scorecard's public service. The badge shows workflow
+status, not a security score; a successful scan can still report findings.
 
 The parser underneath never dereferences external entities, so XXE is
 foreclosed structurally rather than by a default. Entity expansion is
