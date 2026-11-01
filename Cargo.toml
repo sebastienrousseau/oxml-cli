@@ -1,6 +1,6 @@
 [package]
 name = "oxml-cli"
-version = "0.0.14"
+version = "0.0.15"
 edition = "2024"
 rust-version = "1.89.0"
 license = "MIT OR Apache-2.0"
@@ -44,8 +44,8 @@ name = "oxml"
 path = "src/main.rs"
 
 [dependencies]
-oxml = "=0.0.12"
-xmlschema = "=0.0.13"
+oxml = "=0.0.13"
+xmlschema = "=0.0.14"
 
 [[example]]
 name = "run_a_command"
