@@ -42,7 +42,7 @@
 - [Reading from standard input](#reading-from-standard-input)
 - [Migration](#migration) — from `xmllint`, `xq`, `xmlstarlet`
 - [Why this approach?](#why-this-approach)
-- [Capabilities in 0.0.14](#capabilities-in-0014)
+- [Capabilities in 0.0.15](#capabilities-in-0015)
 - [Ecosystem comparison](#ecosystem-comparison)
 - [Benchmarks](#benchmarks)
 
@@ -63,7 +63,7 @@
 ## Install
 
 ```bash
-cargo install oxml-cli --version 0.0.14 --locked
+cargo install oxml-cli --version 0.0.15 --locked
 ```
 
 From source:
@@ -115,7 +115,7 @@ max depth   4
 | [`oxml-json`](https://github.com/sebastienrousseau/oxml-json) | JSON support for the language server |
 
 All seven ship one version number, moving in steps of 0.0.1. `oxml-cli
-0.0.14` goes with `oxml 0.0.12`, and no other combination is supported.
+0.0.15` goes with `oxml 0.0.13`, and no other combination is supported.
 
 ## Commands
 
@@ -265,7 +265,7 @@ pointed at files from elsewhere, that matters more than throughput.
 **Predictable output.** One match per line, nothing else on stdout.
 Diagnostics go to stderr. It is meant to be piped.
 
-## Capabilities in 0.0.14
+## Capabilities in 0.0.15
 
 - XPath 1.0 queries: ten axes, 25 functions, all four value types
 - Text-only and count-only output modes
